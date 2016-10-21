@@ -1,0 +1,64 @@
+#+latex_class: ctexart
+#+latex_class_options: [utf8]
+#+LATEX_CLASS_OPTIONS:[a4paper]
+#+STARTUP: hideblocks
+#+LATEX_CLASS_OPTIONS:[12pt]
+#+OPTIONS: p:nil tex:t  ^:t
+#+LANGUAGE: zh_cn
+#+OPTIONS:   H:3 num:t toc:t \n:nil @:t ::t |:t ^:t -:t f:t *:t <:t
+#+OPTIONS:   TeX:t LaTeX:t skip:nil d:nil todo:t pri:nil tags:not-in-toc
+#+INFOJS_OPT: view:nil toc:nil ltoc:t mouse:underline buttons:0 path:http://orgmode.org/org-info.js
+#+EXPORT_SELECT_TAGS: export
+#+EXPORT_EXCLUDE_TAGS: noexport
+#+LINK_UP:   
+#+LINK_HOME: 
+#+XSLT:
+#+LATEX_HEADER: \geometry{left=3cm,right=2.5cm,top=2.5cm,bottom=2.5cm}  %设置 上、左、下、右 页边距
+#+title: 混凝土坝仓面施工资源智能匹配与调度研究（时间、成本流线优化）
+#+author: 余晓云 
+#+date: date
+#+OPTIONS: toc:nil, ^:t
+#+LATEX_HEADER: \usepackage{natbib}
+#+latex_header: \usepackage{glossaries}
+#+latex_header: \makeglossaries
+#+latex_header_extra: \newglossaryentry{acronym}{name={acronym},description={An acronym is an abbreviation used as a word which is formed from the initial components in a phrase or a word. Usually these components are individual letters (as in NATO or laser) or parts of words or names (as in Benelux)}}
+#+latex_header_extra: \newacronym{tla}{TLA}{Three Letter Acronym}
+
+\maketitle
+\tableofcontents
+
+
+#+BEGIN_ABSTRACT
+在高拱坝混凝土施工中，由于工序复杂，所需要资源繁多，且互相约束。如何最大限度的利用资源，节约时间和成本是工程施工管理中研究的主要问题，本文用二部图完美匹配方法，研究混凝土仓面作业中资源的匹配问题，解决了资源配置优化的问题。
+#+END_ABSTRACT
+
+* 引言 
+在混凝土坝仓面施工中，施工工序繁多，工艺流程复杂。模板与钢筋安装，基础面及施工缝处理，混凝土拌制是确保混凝土施工质量的基础，混凝土浇筑是确保施工质量的重点。 仓面混凝土浇筑方法，浇筑时间，仓面设备，人员配置及温控等是确保浇筑质量的关键措施。
+
+其主要施工工序如图[[ref:tab:workflows][workflows]]：
+#+caption: 混凝土坝仓面施工主要工序 \label{tab:workflows}
+#+ATTR_LATEX: :mode table :booktabs center :align {@{}llp{3cm}p{3cm}r@{}} :width 1\textwidth :environment tabular :float multicolumn
+|    | 工序                 | 描述         | 约束条件 | 资源 | 其它 |
+|----+----------------------+--------------+----------+------+------|
+|  1 | 模板加工制作         | 模板加工制作 | －       | 模板 |      |
+|  2 | 钢筋预埋件加工及运输 |              |          |      |      |
+|  3 | 基础及缝面处理       |              |          |      |      |
+|  4 | 基础验收             |              |          |      |      |
+|  5 | 测量放线             |              |          |      |      |
+|  6 | 钢筋绑扎，预埋件安装 |              |          |      |      |
+|  7 | 模板架立，止水安装   |              |          |      |      |
+|  8 | 混凝土拌制运输       |              |          |      |      |
+|  9 | 取样试验             |              |          |      |      |
+| 10 | 清仓，验收           |              |          |      |      |
+| 11 | 混凝土浇筑           |              |          |      |      |
+| 12 | 养护及表面保护       |              |          |      |      |
+| 13 | 拆模、修整           |              |          |      |      |
+|----+----------------------+--------------+----------+------+------|
+#+TBLFM: $1=vlen(@I$1..0); EN
+资源的匹配问题，是为了能让资源最大化使用，能够使资源”物尽其用“ ,若资源未能充分利用，则可能出现所谓的”窝工“现象。考虑多任务，多设备种类，多设备数量，施工作业面小，如何利用小的作业空间，尽可能多的利用各类资源开展施工作业。
+资源配置与资源调度，资源配置属静态方法，根据施工组织计划，尽可能满足施工进度而对某一作业进行的各种资源的各类、数量以及各种组合。资源调度属于动态概念，是在资源配置的基础之上，最小化闲置设备数以及最小化窝工作业面。
+* 二部图
+假设有$m$资源集 A，和$n$个需要完成的工作集 B，用二部图表示为$V(G)$.
+* 资源完美匹配
+
+* 施工工艺与施工工序的匹配
