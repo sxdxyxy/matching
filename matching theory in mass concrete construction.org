@@ -1,8 +1,9 @@
 #+include: ../head.org
 #+latex_class: elsarticle
 #+latex_class_options:[5p]
+#+hideblocks:t
 #+options: title:nil author:nil
-#+title: BIPARTITE GRAPHS MATCHING IN CONSTRUCTION RESOURCES CONFIGURATION
+#+title: FEEDBACK OF RESOURCES CONFIGURATION AND ALLOCATION BASED ON BIPARTITE GRAPHS MATCHING IN HYDRAULIC CONSTRUCTION
 #+Author: Xiaoyun Yu
 #+BEGIN_abstract
 abstract
@@ -12,27 +13,306 @@ Matching, Hydraulic construction project, Weighted Bipartite Graph
 #+END_keyword
 #+include: ../authors.org
 * Introduction
-Huge  hydraulic construction projects are one of the most complex work in organizing and management because of thousands of works and resources matching. The complicated organization work also imply in those work always located in a sharp space. To enlarge the work efficiency and lower the construction cost, largely equipments and resources usage is the fatal requirement of construction management. In this paper, a bipartite matching between equipments and jobs is proposed.
-In the resources( including machines, equipments, materials etc)  allocation process, each resource could be allocated to different work, but at the same time, a resource only assign to one task simultaneously.
-In a construction site, a resources configuration has been depicted prior construct, but during the construction process, all configured resources need to be allocated refer to construction job accomplishment.  
+  :LOGBOOK:
+  CLOCK: [2016-11-30 Wed 15:02]--[2016-11-30 Wed 15:27] =>  0:25
+  CLOCK: [2016-11-15 周二 14:38]--[2016-11-15 周二 15:03] =>  0:25
+  CLOCK: [2016-11-07 Mon 23:02]--[2016-11-07 Mon 23:27] =>  0:25
+  CLOCK: [2016-11-02 周三 18:50]--[2016-11-02 周三 19:15] =>  0:25
+  :END:
+# Work face used largely and all equipments are used as wished.
+# matching - scheduling - dynamic planning
+# work flow, people flow, equipments flow for the state simulation.
+# staged resources allocation
 
-matching -> resource -> efficiency-> matching algorithm
-bipartite graph-> matching 
+In hydraulic engineering projects, equipments usage rate is a problem concerned by engineers and researchers. generally 
+speaking, we always want maximum utilization the resources including machines, people, and raw materials. On the other hand, activities should be done in a limited duration and in a limited space, So let the resources, tasks, duration and work space organized properly is main aspect of the resolves. 
 
-Hungarian algorithm
-Augmenting path, Alternating path
+On the construction site, we can summarize the construction elements as the following:
+#+caption: Construction Elements in the project site \label{tab:construction-elements}
+#+ATTR_LATEX: :mode table :booktabs center :align {@{}llp{3cm}p{3cm}r@{}} :width 1\textwidth :environment tabular :float multicolumn
+| number | elements types | description                       | function                                     |
+|--------+----------------+-----------------------------------+----------------------------------------------|
+|      1 | people         | workers who perform physical jobs | labor's work                                 |
+|      2 | machines       | all type of equipment             | machine's work                               |
+|      3 | raw materials  | work objects                      | things which performed by people or machines |
+|        |                |                                   |                                              |
 
-Resources configuration is prefer to be known as allocate each resource to different direction. and lead to full load of equipments and to avoid over load or less load.
-that's to say, we can leveling the resource allocation to the maximum probabilityt.
+This document describes a matching algorithm for finding optimal solution to dynamic match resource with task under the environment of constraints of working face and a given amount (limited) resources. The simple model denote as:
+#+BEGIN_EXPORT latex
+\begin{eqnarray*}
+  MIN (Resources consumption) \\
+  MIN (Duration)  \\
+  st.  \\
+  \limits{working face}  \\
+  \limits{resources}
+\end{eqnarray*}
+#+END_EXPORT
+
+In its most general form, the resource-matching problem asks the following: Given a set of tasks, a set of resources, and a measurement of performance, what is the best way to assign the resources to the tasks such that the performance is maximized? The general problem encapsulates many variations such as the job-shop and flow shop problems, production scheduling, and the resource-matching problem.
+ 
+the type of constraints is showing:
+#+caption: type of constraints \label{tab:constraints}
+#+ATTR_LATEX: :mode table :booktabs center :align {@{}llp{3cm}p{3cm}r@{}} :width 1\textwidth :environment tabular :float multicolumn
+| number | types                    | description | instance                                                                                                                                    |
+|--------+--------------------------+-------------+---------------------------------------------------------------------------------------------------------------------------------------------|
+|      1 | temporal constraints     |             | James can work only on Tuesdays, Thursdays, and Fridays                                                                                     |
+|      2 | Precedence constraints   |             | The design of the interface can be started when library programming interface is frozen and the analog-to-digital hardware is 75% completed |
+|      3 | availability constraints |             | three skilled machinists are available in the second shift, four are available in the third shift                                           |
+|      4 | combination constraints  |             | The injection molding machine can run three shifts between maintenance cycles                                                               |
+
+This is not a new subject. Planning and scheduling methods have been proposed and analyzed since at least the 1950s. Although methods exist for finding optimal solutions to some specific matching problem formulations, many methods do not work when the structure of the constraints or objectives change. For example, a scheduling heuristic that says schedule the task that uses the least number of resourcesÓ may not perform well when the problem is modified to include different types of resources. In addition, many methods do not perform well when faced with problems of significant size. In many cases, simply finding feasible solutions is a considerable challenge. The difficult nature of resource-constrained scheduling led Tavares and Weglarz cite:tavares1990project to label project management and scheduling "a permanent challenge for operations research ".
+
+This work uses a problem-specific representation with specialized crossover and mutation  in concert with bipartite graph matching theory. we divide them into three sections, the one is a simple resource-task matching in a limited working face, the second one is a model considering resource capacity constraints, the third one is the full working resource matching model.  we try to find a model from easy to real world simulation.
+
+Due to the continued challenge of resource-task matching and the promising performance of matching theory algorithm on similar problems, the paper concentrate to apply the matching theory on resources allocation in construction projects, and promise to find the best matching for given resource type and given amount, that's to say, we try to find a feasible and optimal solution.
+
+* The Resources Task Matching Problem
+** Background
+ Huge  hydraulic construction projects are one of the most complex work in organizing and management because of thousands of works and resources matching. The complicated organization work also imply in those work always located in a sharp space. To enlarge the work efficiency and lower the construction cost, largely equipments and resources usage is the fatal requirement of construction management. In this paper, a bipartite matching between equipments and jobs is proposed.
+ In the resources( including machines, equipments, materials etc)  allocation process, each resource could be allocated to different work, but at the same time, a resource only assign to one task simultaneously.
+ In a construction site, a resources configuration has been depicted prior construct, but during the construction process, all configured resources need to be allocated refer to construction job accomplishment.
+
+ Projects, the activities of which are assigned a resource (or a set of resources) with limited capacity or of limited availability, fall under a category of scheduling problems termed resource-constrained scheduling problems (RCSPs). Such projects are constrained in their capacity to meet a constructor's predefined primary objectives for a timely and cost-efficient project completion. RCSPs are nondeterministic polynomial-time hard (NP-hard) problems and their solutions cannot be obtained analytically, thus numerical methods or heuristics are used to obtain optimal or near optimal solutions. NP-hard problems are a class of problems that are at least as hard as the hardest problems in NP (NP is the set of decision problems solvable in polynomial time by a nondeterministic Turing machine) . For this class of problems, in order to arrive at the optimal solution a computationally intensive, exhaustive analysis is needed in which all possible outcomes are tested.
+
+Resources configuration is prefer to be known as allocate each resource to different direction.
+** The Problem (Definition)
+In the general denotation, the matching problem is defined as following:
+
+Given
+- a set of tasks that must be executed,
+- a set of resources with which to perform the tasks
+- a set of objectives with which to judge a matching performance, and 
+- a set of constraints which must be satisfied.
+For short, what is the best way to assign the given resources to the tasks that should be executed efficiently.
+ 
+ The general form includes the following characteristics:
+  1. each task may be executed in more than  one manner,  idepending  on which resource(s) is (are) assigned to it
+  2. task precedence relationships may include overlap so that a given task may begin when its predecessor is partially complete
+  3. each task may be interrupted  according to a  predefined set of interruption modes (specific to each task), or no interruption may be allowed
+  4. each task may require more than one resource of various types
+  5. a task's resource requirements may vary over the duration of the task
+  6. the  resources may  be  renewable  (e.g.  labor,  machines)  or  non-renewable(e.g. raw materials)
+  7. resource availability may vary over the duration of the schedule or task
+  8. resources may have temporal restrictions
+
+  #+BEGIN_EXPORT latex
+    \begin{figure}[ht]
+      \centering
+    \input{./figures/bipartite-matching.tex}
+      \caption{A bipartite graph matching\label{fig:bipartite-matching} }
+    \end{figure}
+
+
+  the difference between resource configuration problem and the allocation problem
+  is: allocation problem is a dynamic problem that associate with a time variable:
+  the configuration problem function is showed as:
+  \begin{equation}
+    \label{eq:configuration}
+    C = f(s,q)
+  \end{equation}
+  the allocation problem is a function as:
+  \begin{equation}
+    \label{eq:allocation}
+    A = g(t,q)
+  \end{equation}
+  among them, there are function $f$ and $g$, $C$ is a configuration variable, $A$
+  is a allocation variable, $s$ is a spatial variable, $q$ is a quantity variable,
+  and $t$ is a time variable.
+
+
+  #+END_EXPORT
+
+In order to model the real problems accurately, the general formulation should consider the following dynamic characteristics:
+- Resource availabilities could change via requirement.
+- Objectives may change in different circumirstances.
 ** The purpose of the model
-This model only works for a machine can do different work at the same time.
+ generate a schedule -> evaluate the performance
+ a plan  is a set of constraints  that define the problem. a schedule consists of a set of assignments of resources to activities at specific times. resource include people, machine, and raw materials. constraints define the limits of resources and relations between activities. objectives define the goals and performance measures for the problem.
 
-Construction resources management is vital important aspect for huge hydraulic projects, DING Jiyong cite:DINGJiyong2013 gave a approach on multi-resources leveling optimization under conditions of matching construction, they use resources entropy to describe leveling degree, and quantify the importance, consumption time distribution and matching degreee, an optimized model proposed to enlarge the leveling of resources allocation.
-Perfection in matching that cost resources too, the cost of matching cite:Brazil2016   Hiyassat cite:Hiyassat2001 proposed a minimum matrix method that leveling resources.   
-Lying idle is a sort of phenomenon that existed in construction site because of lack of resources arrangement and configuration or allocation, many resources are waste in the condition of lying idle, properly construction organizing and resources management could avoid lying idle in construction site.  
-* Methodology
-** weighted matching
+ This model only works for a machine can do different work at the same time.
 
+ Construction resources management is vital important aspect for huge hydraulic projects, DING Jiyong cite:DINGJiyong2013 gave a approach on multi-resources leveling optimization under conditions of matching construction, they use resources entropy to describe leveling degree, and quantify the importance, consumption time distribution and matching degreee, an optimized model proposed to enlarge the leveling of resources allocation.
+ Perfection in matching that cost resources too, the cost of matching cite:Brazil2016   Hiyassat cite:Hiyassat2001 proposed a minimum matrix method that leveling resources.
+ Lying idle is a sort of phenomenon that existed in construction site because of lack of resources arrangement and configuration or allocation, many resources are waste in the condition of lying idle, properly construction organizing and resources management could avoid lying idle in construction site.
+ Resource leveling is also a subject to speed project progress and lower the resource cost, some research focused on this. cite:Christodoulou2010 proposed a entropy maximization method to minimum the construction resource leveling.
+
+ The minimum moment method for resource leveling is revisited and restated as an entropy-maximization problem. The minimum moment method assumes that the moment of the daily resource demands about the horizontal axis of a project’s resource histogram is a good measure of the resource utilization and that the optimal resource allocation exists when the total moment is at a minimum, thus when the resource histogram is of rectangular shape. The entropy-maximization method proposed in this paper makes use of the general theory of entropy and two of its principal properties  subadditivity and maximality  to revisit the minimum moment method for resource leveling. The entropy-maximization method presented allows for activity stretching and provides resource allocation solutions that show improvement over previous approaches. A case study is also presented that validates the results.
+
+ #+BEGIN_SRC python :exports none :results replace
+   # -*- coding: utf-8 -*-
+   from matplotlib import pyplot as plt
+   from matplotlib import style
+   import numpy as np
+   fig = plt.figure()
+   style.use('ggplot')
+   t = np.arange(0.0, 2.0, 0.1)
+   s = np.sin(2*np.pi*t)
+   s2 = np.cos(2*np.pi*t)
+   plt.plot(t, s, 'o-', lw=4.1)
+   plt.plot(t, s2, 'o-', lw=4.1)
+   plt.xlabel('time(s)')
+   plt.ylabel('Voltage (mV)')
+   plt.title('Simple plot $\\frac{\\alpha}{2}$')
+   plt.grid(True)
+   # plt.show()
+   from matplotlib2tikz import save as tikz_save
+   tikz_save('figures/figure.tex')
+ #+END_SRC
+
+ #+RESULTS:
+ : None
+
+ #+BEGIN_EXPORT latex
+ \begin{figure}[ht]
+   \centering
+   \input{./figures/figure.tex}
+   \caption{Python figure model\label{fig:test} }
+ \end{figure}
+
+ #+END_EXPORT
+
+** What makes resources matching problems hard?
+*** Scaling issues - the size of the problem
+*** Uncertainty  and dynamic nature of real construction projects
+*** Infeasibility - Sparseness of the Solution Space
+For large scale resource - task matching problems means that, constraints make the search for an optional solution more difficult by breaking up an otherwise continuous search space. when many constraints are added, traversal of the search space is confounded.
+** TODO The solve feasibility of Matching theory
+tasks are all executed with their sequences constraint, for those tasks with no sequence constraint, we assign a prior list to those tasks. cite:PENGPeng-fei2016
+
+* TODO Relative works
+ A solution space model based on task priority ordering is constructed according to the practical problem of support resource occupancy conflicts and logical relationship among support tasks in the process of equipment support task planning.cite:PENGPeng-fei2016
+
+"This work describes a matching algorithm approach to resource-constrained scheduling using a direct, time-based representation. Whereas traditional solution methods are typically sequencebased, this representation encodes schedule information as a dual array of relative delay times and integer execution modes. The representation supports multiple execution modes, preemption, non-uniform resource availability/usage, a variety of resource types, probabilistic resource performance models, overlapping precedence relationships, and temporal constraints on both tasks and resources. In addition, the representation includes time-varying resource availabilities and requirements. Many objective measures can be defined such as minimization of makespan, maximization of net present value, or minimization of average tardiness. Multiple, possibly conflicting objectives are supported. The genetic algorithm adapts to dynamic factors such as changes to the project plan or disturbances in the schedule execution." cite:wall1996genetic
+
+Flood use a foresight technique to model construction process.cite:Flood.
+
+An essential part of construction project planning and control is the development of a model of the project’s construction processes. Discrete-event simulation is the most versatile of all modeling methods, but it lacks the simplicity in use of other modeling techniques and so has not been widely adopted in construction. cite:Flood
+
+developed modeling construction processes classified with 3 categories: the critical path method CPM, the linear scheduling techniques, and variants with non-structural enhancements. cite:Flood.
+ 
+#+caption: Work content in construction site of hydraulic project  \label{tab:workcontent}
+#+ATTR_LATEX: :mode table :booktabs center :align {@{}llp{3cm}p{3cm}r@{}} :width 1\textwidth :environment tabular* :float multicolumn
+|    |                       |              |                     |   |   |
+|----+-----------------------+--------------+---------------------+---+---|
+| NO | Work classify         | Work content | Equipments suitable |   |   |
+|----+-----------------------+--------------+---------------------+---+---|
+|  1 | Exavacation           |              |                     |   |   |
+|    | Transportation        |              |                     |   |   |
+|    | Concrete work affairs |              |                     |   |   |
+#+TBLFM: $2=vlen(@I$2..0); EN
+
+#+BEGIN_EXPORT latex
+Suppose we have a set of equipments, presented as $S{e_1,e_2,e_3,\cdots,e_i}$, and then there are a set of tasks $T{a_1,a_2,a_3,\cdots,a_j}$,  We need to assign all equipments to work on the all tasks, and get the lowest cost and efficiency. to solve this problem,  Let $G$ be a graph with $n$ vertices and let $m_k$ be the number of $k$-edge matchings, a matching model between the two sets will proposed as:
+  \begin{equation}
+    \label{eq:matching-def}
+    M(S,T)= \sum_{k \geq 0}m_kx^k
+  \end{equation}
+  where $n$ is the number of vertices in the graph, $S$ is the equipments set,
+  $T$ is the tasks set, $e$ is one of the element of the equipments set $S$, $k$
+  is the number of graph edges, $m$ is the number of the graph matching.
+#+END_EXPORT
+
+with the figure of:
+
+#+BEGIN_SRC dot  :file ./figures/graphmatching.eps  :exports results
+   strict graph G {rankdir=LR ranksep=equally size ="8,6" node [shape = circle] concentrate=true
+    subgraph cluster_0 { size="4,6"
+      a0,a1,a2,a3,"a...";
+      label = "Equipment(s)";
+    }
+    subgraph cluster_1 { size="4,6"
+      label = "Task(s)";
+      color=blue
+      b0,b1,b2,b3,"b..."
+    }
+    {a0,a1,a2,a3,"a..."}--{b0,b1,b2,b3,"b..."}
+  }
+#+END_SRC
+
+#+CAPTION: Resources Matching Scretch \label{fig:matchinggraph}
+#+ATTR_LaTeX: :width 0.3\textwidth :float sideway  :options scale=0.75
+#+RESULTS:
+[[file:./figures/graphmatching.eps]]
+
+#+caption: Equipments classify and model list \label{tab:equipmentsmodel}
+#+ATTR_LATEX: :mode table :booktabs center :align {@{}llp{3cm}p{3cm}r@{}} :width 1\textwidth :environment tabular :float multicolumn
+|--------+--------+---------+---------+--------|
+| Weight | Model  | model-1 | model-2 | model3 |
+|--------+--------+---------+---------+--------|
+| Type   | type-1 |       1 |       2 |      1 |
+|        | type-2 |       2 |       2 |      4 |
+|        | type-3 |       1 |       1 |      3 |
+|--------+--------+---------+---------+--------|
+#+TBLFM: $1=vlen(@I$1..0); EN
+
+#+Begin_EXPORT latex
+Assuming $a_{ij}$ represents the $i$th type of equipment and the $j$th model,
+using  $A$ represent the all equipments as:
+\begin{equation}
+  \label{eq:modelequipment}
+A = \left[
+\begin{array}{cccccc}
+  a_{11}&a_{12}&a_{13}&a_{14}&$\cdots$&a_{1j}\\
+  a_{21}&a_{22}&a_{23}&a_{24}&$\cdots$&a_{2j}\\
+  a_{21}&a_{22}&a_{23}&a_{24}&$\cdots$&a_{2j}\\
+  a_{21}&a_{22}&a_{23}&a_{24}&$\cdots$&a_{2j}\\
+  a_{21}&a_{22}&a_{23}&a_{24}&$\cdots$&a_{2j}
+\end{array}
+\right]
+\end{equation}
+At the same time, we express all tasks as $T$, and the task number $t_{kl}$ as
+the $k$th type $l$th task, so the tasks will be defined as:
+\begin{equation}
+  \label{eq:modeltasks}
+  T=\left{
+    \begin{pmatrix}
+      t_{11}&t_{12}&\cdots&t_{1k}\\
+      t_{21}&t_{22}&\cdots&t_{2k}\\
+      t_{31}&t_{32}&\vdots&t_{3k}\\
+      t_{l1}&t_{l2}&\cdots&t_{lk}
+    \end{pmatrix}
+  \right}
+\end{equation}
+Then we define a bipartite graph $G$ between equipments set($A$) and task
+set($T$) as $G(A,T)$, the matching $M$ in the graph $G$ denote a set of pairwise
+non-adjacent edges, that is, there are no two edges share a common vertex.
+To maximum the equipments use rate, the object is to calculate the *Maximal Matching* match
+between equipments and tasks.
+the maximal matching refer to a matching $M$ of a graph $G$ with the property
+that if any edge not in $M$ is added to $M$, it is no longer a matching, that
+is, $M$ is maximal if it is not a proper subset of any other matching in graph $G$.
+#+END_EXPORT
+
+** Allocation failure detection and resolve
+Sometimes, Resource allocated to tasks could fail, because of lack of resources or the resource need exactly are unavailable, we need to resolve the defeats prior to the task perform. in this model, we use a resource buffer to store a redundancy to the task list.
+
+* Solution Method
+In this research, We proposed a method to configure the resources with tasks, the solution method described in five parts: (1) the problem model in the form of assumptions about tasks and resources with constraints, (2) The matching bipartite graph model, (3) the matching algorithm, (4) the solution of getting the best match. 
+
+** Constraints and Objectives
+   :LOGBOOK:
+   CLOCK: [2016-11-15 周二 15:14]--[2016-11-15 周二 15:39] =>  0:25
+   :END:
+Constraints and objectives are defined during the formulation of the problem. Constraints define the /feasibility of a schedule/. Objectives define the optimality of a schedule. Whereas objectives should be satisfied, constraints must be  satisfied. Both constraints and objectives may be task-based, resource-based, related to performance measures, or some combination of these.
+A feasible scheme satisfied all of the constraints, but an optimal solution not only satisfies all of the constraints, but also is at least as good as any other feasible scheme. When modeling the matching problem, it is often convenient to think of objectives and constraints as equivalent, but when solving the problem, they must be treated differently.
+In our model, constraints appear in many forms, such as: precedence constraints define the order in which tasks can be performed, the task can be done by only specified equipment(s). that is to say, the resource should be matched under conditions of such constraints, that's to say, constraints are hard limitation to the problem, in the matching model, constraints denoted by a mechanic of hard link connection in the bipartite graph. we use a negative infinity data ($-\infty$) denote hard limitation in the matching between resource and correlative equipment. then we define a objective function as the evaluation of performance and model objective as following:
+
+
+*** Work face constraint
+work face is another type of resources, because the work faces are always limited in the construction site. in this study, we use a concept of "Work Face Capability" (WFC) to represent the constraints of work face. It means that the amount of equipments sets covered in every construction site 
+*** Multiple objective
+1. equipments efficiency
+2. work face maximal efficiency
+
+#+BEGIN_EXPORT latex
+\begin{equation}
+  \label{eq:evaluationfunction}
+  Max E = max \sum_{1,1}^{i,j}{M(A,T) \times W_{k}}
+\end{equation}
+$E$ denote a score of match degree, $W$ denote weight between $A$ and $T$, $i$,$j$ denote match number.
+#+END_EXPORT 
+
+The configuration is static only if the project has been completed. from the time pass by, projects are faced with uncertainty because of equipment failures or uncertain conditions change. both configuration and allocation of resource must be able to adapt to arrival changes.
 ** Basic hypothesis
 This model basis on the following hypothesis:
 1. All the same equipments has the same work ability.
@@ -41,60 +321,67 @@ This model basis on the following hypothesis:
 4. Task sequences are fixed constant in the model.
 5. All allocating cost are ignored during the allocation process.
 6. All other relationship between resources are not concerned.
-** Model
-*** Matching
+** General Conditions
+We have a set of activities that must be executed, and a set of resources with which to perform those activities, and a set of constraints which must be satisfied, and a set of objectives with which to judge a schedule's performance. cite:wall1996genetic That's to say, we need to find the best way to assign the resources to the activities at  specific times such that all of the constraints are satisfied and the best objective measures are produced.
+** Heuristic solution methods
+Whereas  exact  solution  methods  are  guaranteed  to  find  the  optimal  solution  (if  one  exists), heuristic  methods  sometimes  find  optimal  solutions,  but  more  often  find  simply  "good" solutions.   Heuristic methods typically  require  far less time  and/or space than exact  methods. The  heuristics specify how to make  a  decision given  a  particular situation; heuristics are  rules for deciding which action to take.cite:wall1996genetic
+* Matching Model
+The input consists of an undirected graph $G = (V,E)$, with $|V| = n$ and $|E| = m$, The vertices represent resources or tasks and each edge represents the possibility that resources allocated to the possible task. A matching $M$ is a subset of the edges such that no two edges in $M$ share a vertex; i.e., we do not allow a possible resource allocated to different tasks at the same time.
+** Assignment problem (Bipartite Matching)
+ The assignment problem is one of the fundamental combinatorial optimization problems in the branch of optimization or operations research in mathematics. It consists of finding a maximum weight matching (or minimum weight perfect matching) in a weighted bipartite graph.
+ The problem instance has a number of agents and number of tasks. Any agent can be assigned to perform any task, incurring some cost that may vary depending on the agent-task assignment. It is required to perform all tasks by assigning exactly one agent to each task and exactly one task to each agent in such a way that the total cost of the assignment is minimized.
+ #+BEGIN_EXPORT latex
  Suppose that we have a collection of $n$ equipments perform the work, and a collection of $n$ tasks which need to be perform by equipments. Suppose for the sake of argument that these equipments and tasks form two disjoint subsets $M$ and $F$ of the Euclidean plane $R^2$. Suppose also that we have a cost function c: $R2 \times R2 \rightarrow[0, \infty)$, so that $c(x, y)$ is the cost of work on $x$ by $y$. For simplicity, we ignore the time taken to other communication. We also assume that each equipment can do only one task (no splitting of work) and that each task requires precisely one equipment to be in operation (tasks cannot work at half or double-capacity). Having made the above assumptions, a work plan is a bijection $T:M \rightarrow F$. In other words, each equipment $m \in M$ supplies precisely one task $T(m) \in F$ and each task done by precisely one equipment. We wish to find the optimal work plan, the plan $T$ whose total cost
- #+BEGIN_LaTeX
  \begin{equation}
    \label{eq:sum-1}
    c(T):=\sum_{{m\in M}}c(m,T(m))
  \end{equation}
- #+END_LaTeX
  equation ref:eq:sum-1 is the least of all possible work plans from $M$ to $F$. This motivating special case of the transportation problem is an instance of the assignment problem. More specifically, it is equivalent to finding a cite:Ahn2015 minimum weight matching in a bipartite graph.
  The matching polynomial is:
  Let $G$ be a graph with $n$ vertices and let $M_k$ be the number of $k$-edge matchings, we notation of matching is:
- #+BEGIN_LaTeX
  \begin{equation}
    \label{eq:matchingpolynomial}
    m_G(x):=\sum_{k\geq}m_kx^k.
  \end{equation}
- #+END_LaTeX
+
  where $k$ is the number of edges.
 
-** Bipartite graph theory
-** Assignment problem
-The assignment problem is one of the fundamental combinatorial optimization problems in the branch of optimization or operations research in mathematics. It consists of finding a maximum weight matching (or minimum weight perfect matching) in a weighted bipartite graph.
-The problem instance has a number of agents and number of tasks. Any agent can be assigned to perform any task, incurring some cost that may vary depending on the agent-task assignment. It is required to perform all tasks by assigning exactly one agent to each task and exactly one task to each agent in such a way that the total cost of the assignment is minimized.
-*** formula
+ #+END_EXPORT
+** Weighted Matching
+** Formula and expression
 The formal definition of the assignment problem (or linear assignment problem) is
 Given two sets, $A$ and $T$, of equal size, together with a weight function $C : A \times T \rightarrow R$. Find a bijection $f : A \rightarrow T$ such that the cost function:
-#+BEGIN_LaTeX
+
+#+BEGIN_EXPORT latex
+
 \begin{equation}
   \label{eq:costfunction}
-\sum_{a\in A}C(a,f(a)) 
+\sum_{a\in A}C(a,f(a))
 \end{equation}
-#+END_LaTeX
+
 is minimized.
 Usually the weight function is viewed as a square real-valued matrix C, so that the cost function is written down as:
-#+BEGIN_LaTeX
+
 \begin{equation}
   \label{eq:costfunction-2}
 \sum_{a\in A}C_{a,f(a)}
 \end{equation}
-#+END_LaTeX
 
 The problem is "linear" because the cost function to be optimized as well as all the constraints contain only linear terms.
 The problem can be expressed as a standard linear program with the objective function:
-#+BEGIN_LaTeX
+
 \begin{equation}
   \label{eq:assignment-main}
 \sum_{i\in A}\sum_{j\in T}C(i,j)x_{ij}
 \end{equation}
+
 subject to the constraints:
+
 \begin{equation}
   \label{eq:assignment-1}
 \sum_{j\in T}x_{ij}=1{\text{ for }}i\in A,
 \end{equation}
+
 \begin{equation}
   \label{eq:assignment-2}
 \sum_{i\in A}x_{ij}=1{\text{ for }}j\in T,
@@ -102,22 +389,89 @@ subject to the constraints:
 
 \begin{equation}
   \label{eq:assignment-3}
-x_{ij}\geq 0{\text{ for }i,j\in A,T. 
+x_{ij}\geq 0{\text{ for }i,j\in A,T.
 \end{equation}
-#+END_LaTeX
-The variable $x_{ij}$ represents the assignment of agent $i$ to task 
-$j$, taking value 1 if the assignment is done and 0 otherwise. This formulation allows also fractional variable values, but there is always an optimal solution where the variables take integer values. This is because the constraint matrix is totally unimodular. The first constraint requires that every agent is assigned to exactly one task, and the second constraint requires that every task is assigned exactly one agent.
-*** Weighted bipartite graph
-*** Maximal matching problem
-*** Definition
-Let us call a function $y : (S\bigcup T) \rightarrow R$ a potential if $y(i) + y(j) \leq c(i, j)$ for each $i \in S, j \in T$ . The value of potential $y$ is $\sum_{v\in S \bigcup T}y(v)$. It can be seen that the cost of each perfect matching is at least the value of each potential. The Hungarian method finds a perfect matching and a potential with equal cost/value which proves the optimality of both. In fact it finds a perfect matching of tight edges: an edge $ij$ is called tight for a potential $y$ if $y(i) + y(j) = c(i, j)$. Let us denote the subgraph of tight edges by $G_y$. The cost of a perfect matching in $G_y$ (if there is one) equals the value of $y$.
-#+BEGIN_LaTeX
-\begin{equation}
-  \label{eq:equation}
-  
-\end{equation}
-#+END_LaTeX
 
+The variable $x_{ij}$ represents the assignment of agent $i$ to task
+$j$, taking value 1 if the assignment is done and 0 otherwise. This formulation allows also fractional variable values, but there is always an optimal solution where the variables take integer values. This is because the constraint matrix is totally unimodular. The first constraint requires that every agent is assigned to exactly one task, and the second constraint requires that every task is assigned exactly one agent.
+#+END_EXPORT
+* The Matching algorithm
+** Hungarian algorithm
+   :LOGBOOK:
+   CLOCK: [2016-12-12 Mon 03:00]
+   :END:
+
+Algorithm for bipartite matching:
+
+Form a maximal forest $F$ in $G$ with the properties:
+1. each point $b$ of $F$ in $B$ has degree 2 and one of the forest lines incident with $b$ belongs to $M$
+2. each component of $F$ contains a point of $A1$.
+
+the search process is:
+1. Start with any matching $M$, this match may be a minimum matching as a start.
+2. Form a maximal forest $F$ having properties (1) and (2) above.
+3. If there is a line joining $V(F) \bigcap A$ to a point of $B_1$, we can obtain a new larger matching $M`$ then return to step 1.
+4. If no line joins $V(F) \bigcap A$ to $B_1$, then $M$ is maximum. (Moreover, if $X=A-V(F)$ and $Y=V(F)\bigcap B$, $X\bigcup Y$ is a minimum cover for $G$.) End.
+
+this algorithm is much faster than traditional Hungarian algorithm, It runs in $O(qplog_{q/{p+1}}p)$ time and is due to Galil cite:galil_efficient_1983.
+
+
+Augmenting path, Alternating path
+multiple matching,
+#+BEGIN_EXPORT latex
+
+#+END_EXPORT
+** Definition
+ #+BEGIN_EXPORT latex
+ Let us call a function $y : (S\bigcup T) \rightarrow R$ a potential if $y(i) + y(j) \leq c(i, j)$ for each $i \in S, j \in T$ . The value of potential $y$ is $\sum_{v\in S \bigcup T}y(v)$. It can be seen that the cost of each perfect matching is at least the value of each potential. The Hungarian method finds a perfect matching and a potential with equal cost/value which proves the optimality of both. In fact it finds a perfect matching of tight edges: an edge $ij$ is called tight for a potential $y$ if $y(i) + y(j) = c(i, j)$. Let us denote the subgraph of tight edges by $G_y$. The cost of a perfect matching in $G_y$ (if there is one) equals the value of $y$.
+
+ one of a feasible resolve is:
+ \begin{equation}
+   \label{eq:resolve}
+ S=\left(
+   \begin{pmatrix}
+     s_{11}&s_{12}&\cdots&s_{1j}&\cdots&s_{1n}\\
+     s_{21}&s_{22}&\cdots&s_{2j}&\cdots&s_{2n}\\
+     \vdots&\vdots&\vdots&\vdots&\vdots&\vdots\\
+     s_{i1}&s_{i2}&\cdots&s_{ij}&\cdots&s_{in}\\
+     \vdots&\vdots&\vdots&\vdots&\vdots&\vdots\\
+     s_{m1}&s_{m2}&\cdots&s_{mj}&\cdots&s_{mn}
+   \end{pmatrix}
+ \right)
+ \end{equation}
+ in the equation, $s_{ij}$ denote the match result between task $T_i$ and
+ resource $C_{j}$, the value can be 0 or 1, 0 denote that task does not
+ exhausted resource $C_{j}$, 1 means occupy resource $C_j$. $S$ denote the wether
+ the task performed or not, we use $\sum_{i=1}^ms{ij}=1$ to express the task performed.
+ #+END_EXPORT
+
+* Effective and Efficiency
+This model simulate the construction resource matching, and the most largely enable share the work surface and save resources.
+** Duration effects
+** Cost saving effects
+* Applications
+** Simplest matching in working face
+** Matching of Considering capacity 
+** Simple model of full working resource matching
+** Non working face constraint model
+   :LOGBOOK:
+   CLOCK: [2016-11-24 Thu 15:19]--[2016-11-24 Thu 15:44] =>  0:25
+   :END:
+   We discuss the matching problems in non working face constraint environment,  the simplest model in construction resource-task matching problems. 
+* Conclusions and discussion
+  :LOGBOOK:
+  CLOCK: [2016-12-12 Mon 02:22]--[2016-12-12 Mon 02:47] =>  0:25
+  CLOCK: [2016-12-12 Mon 01:51]--[2016-12-12 Mon 02:16] =>  0:25
+  :END:
+The bipartite matching algorithm performed better (compared to linear models) on the resource configuration problems with mass resources and tasks. Even the extra combinations introduced by a resource classification modes did not hurt the algorithm performance. In fact, in  some cases it made the matching problem easier whereas it made the computing more difficult for the branch and bound methods. This suggests that the matching algorithm (or a hybrid which includes some kind of graphic method) is well-suited to more complicated and large scale problems with a mix of continuous and discrete components.
+
+analysis the performance data:
+
+
+
+What can be done to improve the matching performance? Hybridize the representation and algorithm and simple resource classifications. combining the matching algorithm with another static algorithm should provide immediate improvement. A hybrid  representation that explicitly contains the resources tree as well as the precedence perspective.
+
+Matching algorithms are conceptually simple and well-suited to problems with a mix of continuous and discrete variables. However their implementation is far from trivial. Although the basic ideas are straightforward, there is actually a great deal of work to do.
 * References
-bibliography:./ResourcesMatching.bib
+bibliography:ResourcesMatching.bib,ResourcesMatchingWin.bib
 bibliographystyle:elsarticle-num
